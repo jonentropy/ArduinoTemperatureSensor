@@ -36,6 +36,7 @@ int tempposition = 0; //index into circular buffer above
 
 const int resetPin = 8;
 const int inputPin = 0;
+
 const int chipSelect = 10;
 
 char * logFilename = "Temps.txt";
@@ -92,7 +93,7 @@ void setup()
       {
         tempFile.println("Arduino Temperature Sensor");
         tempFile.println("  by Tristan Linnell, Can't Hack Won't Hack");
-        tempFile.println("  tris@canthack.org     http://canthack.org ");
+        tempFile.println("  tris@canthack.org   http://canthack.org ");
         tempFile.println();
       }
       
@@ -200,7 +201,6 @@ void writeToSD(String s)
 { 
   if (!SDError)
   {
-  
     File tempFile = SD.open(logFilename, FILE_WRITE);
 
     if (tempFile) 
