@@ -33,13 +33,13 @@ boolean SDError = false;
 unsigned long lastReadingTime = 0L;
 float temparray[10]; //array for rolling average
 int tempposition = 0; //index into circular buffer above
+boolean readyToDisplay = false;
+
+char * logFilename = "Temps.txt";
 
 const int resetPin = 8;
 const int inputPin = 0;
-
 const int chipSelect = 10;
-
-char * logFilename = "Temps.txt";
 
 byte celcius[8] = {
 	B01000,
@@ -91,9 +91,12 @@ void setup()
     {      
       if (newFile)
       {
-        tempFile.println("Arduino Temperature Sensor");
-        tempFile.println("  by Tristan Linnell, Can't Hack Won't Hack");
-        tempFile.println("  tris@canthack.org   http://canthack.org ");
+        tempFile.println("Temperature file written by the");
+        tempFile.println("  Arduino Temperature Sensor");
+        tempFile.println("by Tristan Linnell, Can't Hack Won't Hack");
+        tempFile.println("tris@canthack.org     http://canthack.org");
+        tempFile.println();
+        tempFile.println("Source code available at https://github.com/tristan2468/ArduinoTemperatureSensor");
         tempFile.println();
       }
       
@@ -137,63 +140,69 @@ void loop()
   tempposition++;
   
   if (tempposition >= 10)
+  {
     tempposition = 0;
-    
-    delay(10);
+    readyToDisplay = true;
+  } 
 
-  float temp = 0.0;
-  
-  for(int i = 0 ; i< 10 ; i++)
-  {
-    temp += temparray[i];
-  }
-  temp /= 10.0;
-  
-  //set high and low, or reset them if the switch
-  //has been pressed
-  
-  if (digitalRead(resetPin) == HIGH)  //todo. use an interrupt for this...
-  {
-    high = low = temp;
-    writeToSD("High and Low reset");
-  }
-  else
-  {
-    if(temp < low)
-      low = temp;
-    
-    if(temp > high)
-      high = temp;
-  }
-  
-  //write current and high/low to the LCD...
-  
-  //current
-  lcd.setCursor(0,0);
-  lcd.print((temp));
-  lcd.write(0); //degrees c symbol
-  lcd.print("    ");
-  
-  //low
-  lcd.setCursor(0,1);
-  lcd.print("Lo:");
-  lcd.print((low));
-  lcd.write(0); //degrees c symbol
-  
-  //high
-  lcd.print("  Hi:");
-  lcd.print((high));
-  lcd.write(0); //degrees c symbol 
-  lcd.print("    ");
-  
-  //also write to the SD card, but only every minute...
-  
-  if ((millis() - lastReadingTime) > (1000L *60L))
-  {
-    lastReadingTime = millis();
-    writeToSD(String(round(lastReadingTime / (1000L *60L))) + "\t" + String(round(temp)) + " \tLo:" + String(round(low)) + "\tHi:" + String(round(high)));
-  }  
+  delay(10);
 
+  if (readyToDisplay)
+  {
+    float temp = 0.0;
+    
+    for(int i = 0 ; i< 10 ; i++)
+    {
+      temp += temparray[i];
+    }
+    temp /= 10.0;
+    
+    //set high and low, or reset them if the switch
+    //has been pressed
+    
+    if (digitalRead(resetPin) == HIGH)  //todo. use an interrupt for this...
+    {
+      high = low = temp;
+      writeToSD("High and Low reset");
+    }
+    else
+    {
+      if(temp < low)
+        low = temp;
+      
+      if(temp > high)
+        high = temp;
+    }
+    
+    //write current and high/low to the LCD...
+    
+    //current
+    lcd.setCursor(0,0);
+    lcd.print((temp));
+    lcd.write(0); //degrees c symbol
+    lcd.print("    ");
+    
+    //low
+    lcd.setCursor(0,1);
+    lcd.print("Lo:");
+    lcd.print((low));
+    lcd.write(0); //degrees c symbol
+    
+    //high
+    lcd.print("  Hi:");
+    lcd.print((high));
+    lcd.write(0); //degrees c symbol 
+    lcd.print("    ");
+    
+    //also write to the SD card, but only every minute...
+    
+    if ((millis() - lastReadingTime) > (1000L *60L))
+    {
+      lastReadingTime = millis();
+      writeToSD(String(round(lastReadingTime / (1000L *60L))) + "\t" + String(round(temp)) + " \tLo:" + String(round(low)) + "\tHi:" + String(round(high)));
+    }  
+
+  }
   delay(200);
 } 
 
